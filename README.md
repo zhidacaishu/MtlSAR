@@ -269,7 +269,7 @@ The three-level ordering is also not new to this work. It is a natural extension
 We also agree that the order can be violated for individual examples. An exposed item may be relevant but never examined, its non-click may reflect position bias [16, 17], and a click may be induced or noisy [18]. Fig. 4 is consistent with a graded interpretation. Adding $\mathcal{L}_{\text{micro}}$ clearly separates random negatives, while positives and weak negatives retain a smaller margin. This pattern is consistent with weak negatives being partly relevant and partly noisy. A position-controlled test such as "click > skip-above" would be more direct, but neither KuaiSAR nor JDsearch records within-impression positions or exposure order. We therefore cannot condition the analysis on examination.
 
 ### D6. Explain how the model guarantees that the two ordinal thresholds remain correctly ordered during training.
-RD6. The ordering is guaranteed by construction through a reparameterization rather than by a penalty. The lower threshold is defined as $\theta_1=m_1$ and the upper threshold as $\theta_2=m_1+\operatorname{Softplus}(m_2)$, where $m_1$ and $m_2$ are the underlying learnable parameters. Since $\operatorname{Softplus}(m_2) > 0$ for any finite $m_2$, $\theta_2>\theta_1$ holds at every training step, so no sorting, clipping, or additional constraint loss is required, and both parameters are learned jointly by backpropagation. The implementation is the `OrdinalLogitRegression` class in `layers.py` of our repository.
+RD6. The ordering is guaranteed by construction through a reparameterization rather than by a penalty. The lower threshold is defined as $\theta_1=m_1$ and the upper threshold as $\theta_2=m_1+\mathrm{Softplus}(m_2)$, where $m_1$ and $m_2$ are the underlying learnable parameters. Since $\mathrm{Softplus}(m_2) > 0$ for any finite $m_2$, $\theta_2>\theta_1$ holds at every training step, so no sorting, clipping, or additional constraint loss is required, and both parameters are learned jointly by backpropagation. The implementation is the `OrdinalLogitRegression` class in `layers.py` of our repository.
 
 # Reviewer #2
 
@@ -338,16 +338,16 @@ The analysis in the paper provides supporting evidence. Fig. 6 shows that the ex
 RD2. **Parameterization and ordering guarantee.** The ordering is enforced by construction rather than by a penalty:
 
 $$
-\theta_1=m_1, \qquad \theta_2=m_1+\operatorname{Softplus}(m_2),
+\theta_1=m_1, \qquad \theta_2=m_1+\mathrm{Softplus}(m_2),
 $$
 
-where $m_1$ and $m_2$ are unconstrained learnable scalars. Because $\operatorname{Softplus}(m_2)>0$ for every finite $m_2$, $\theta_2>\theta_1$ holds at every training step. No projection, sorting, or constraint loss is needed. The implementation is the `OrdinalLogitRegression` class in `layers.py`.
+where $m_1$ and $m_2$ are unconstrained learnable scalars. Because $\mathrm{Softplus}(m_2)>0$ for every finite $m_2$, $\theta_2>\theta_1$ holds at every training step. No projection, sorting, or constraint loss is needed. The implementation is the `OrdinalLogitRegression` class in `layers.py`.
 
 **Similarity scale.** The similarity in Eqs. (9)-(10) is computed from $\ell_2$-normalized query and item representations. It is therefore cosine similarity bounded in $[-1,1]$. Section V-D1 already reports cosine similarities between queries and item types, but Eq. (9) does not state the normalization explicitly. We will add this detail in the revision.
 
-**Initialization.** We initialize $m_1=0.2$ and $m_2=-2.0$. This gives $\theta_1=0.2$ and $\theta_2=0.2+\operatorname{Softplus}(-2.0)\approx0.3269$, so the initial band width is about $0.127$. Since $\sigma'(z)\le 1/4$, the middle-band probability is at most $(\theta_2-\theta_1)/4\approx0.03$ at initialization. The weak-negative likelihood therefore provides a direct gradient for widening the band during training.
+**Initialization.** We initialize $m_1=0.2$ and $m_2=-2.0$. This gives $\theta_1=0.2$ and $\theta_2=0.2+\mathrm{Softplus}(-2.0)\approx0.3269$, so the initial band width is about $0.127$. Since $\sigma'(z)\le 1/4$, the middle-band probability is at most $(\theta_2-\theta_1)/4\approx0.03$ at initialization. The weak-negative likelihood therefore provides a direct gradient for widening the band during training.
 
-**Optimization.** Let $p$ denote a clicked item, $wn$ an exposed-but-unclicked item, and $rn$ a random negative. For $s=\operatorname{sem\_sim}(e_q,e_x)$, the three level probabilities are
+**Optimization.** Let $p$ denote a clicked item, $wn$ an exposed-but-unclicked item, and $rn$ a random negative. For $s=\mathrm{sem\_sim}(e_q,e_x)$, the three level probabilities are
 
 $$
 \begin{aligned}
@@ -364,7 +364,7 @@ Equation (10) is the negative log-likelihood of these probabilities. We optimize
 ### D3. Explain how search events with no clicked items are represented, since the current formulation relies on mean pooling over the clicked-item set.
 RD3. Search events with an empty clicked-item set are removed during preprocessing, and we apologize for not documenting this step. Their share is very small: 46,855 of 3,171,231 search events (1.48%) on KuaiSAR and 8,474 of 1,747,826 (0.48%) on JDsearch.
 
-The filter follows directly from our typed-event schema rather than being an ad-hoc choice. Section III states that a search event requires a query and clicked items, and Eq. (3) defines its representation as $e_q+\operatorname{Mean}(C_q)$. The same requirement is implicit in closely related work that constructs search events from a query and its clicked items [1, 4] and, to our understanding, in [2, 3, 5] as well. The filter affects only history construction and training samples. Evaluation instances are click-based by definition, so no test example is discarded. We apply the same filter to every baseline.
+The filter follows directly from our typed-event schema rather than being an ad-hoc choice. Section III states that a search event requires a query and clicked items, and Eq. (3) defines its representation as $e_q+\mathrm{Mean}(C_q)$. The same requirement is implicit in closely related work that constructs search events from a query and its clicked items [1, 4] and, to our understanding, in [2, 3, 5] as well. The filter affects only history construction and training samples. Evaluation instances are click-based by definition, so no test example is discarded. We apply the same filter to every baseline.
 
 Extending the model to zero-click search events would be straightforward (e.g. using $e_q$ alone, or $e_q$ plus the mean embedding of the exposed items $E_q$), and given the proportions above we do not expect it to change the conclusions. We also note as a limitation that abandoned searches may themselves carry a dissatisfaction signal that our current schema does not model.
 
@@ -452,7 +452,7 @@ Distinction from the five lines named by the reviewer:
 
 Two of the three mechanisms differ from their standard counterparts rather than reusing them:
 
-- BAMHA is not standard masked attention. The mask is behavior-exclusive rather than positional or causal: the $H$ heads are partitioned into intra-behavior groups $\mathcal{H}_{\text{intra}}^b$, inter-behavior heads $\mathcal{H}_{\text{inter}}$ and general heads $\mathcal{H}_{\text{gen}}$, and admissibility is decided by whether $\operatorname{type}(x_i)\cap\operatorname{type}(x_j)$ is empty. Adding a behavior type adds one head group, not a new encoder.
+- BAMHA is not standard masked attention. The mask is behavior-exclusive rather than positional or causal: the $H$ heads are partitioned into intra-behavior groups $\mathcal{H}_{\text{intra}}^b$, inter-behavior heads $\mathcal{H}_{\text{inter}}$ and general heads $\mathcal{H}_{\text{gen}}$, and admissibility is decided by whether $\mathrm{type}(x_i)\cap\mathrm{type}(x_j)$ is empty. Adding a behavior type adds one head group, not a new encoder.
 - The event-level alignment is not InfoNCE. $\mathcal{L}_{\text{micro}}$ is an ordinal logit regression with learnable ordered thresholds $\theta_1 < \theta_2$ over three graded relevance levels, using exposed-but-unclicked items as the middle level; InfoNCE is used only at the user level, in $\mathcal{L}_{\text{macro}}$. This is precisely because InfoNCE would push partially relevant items as far away as random ones.
 
 The ablation in Table VI is consistent with this reading. Removing BAMHA reduces KuaiSAR NDCG@5 from 0.1757 to 0.1568 for recommendation and from 0.5514 to 0.4387 for search. Replacing the target-aware experts with a standard PLE layer reduces the two values to 0.1066 and 0.4061. Removing $\mathcal{L}_{\text{micro}}$ reduces them to 0.1638 and 0.4320.
