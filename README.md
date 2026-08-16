@@ -136,7 +136,7 @@ This option slows down training and is not needed for normal runs.
 
 If you use this code, please cite the paper. The BibTeX entry will be added after publication.
 
-
+# Detailed Response
 KuaiSAR Rec (999 negatives):
 | Metric  | DIN             | SASRec          | CL4SRec                | NMTR            | NextIP          | EIDP            | JSR             | SESRec          | USER                   | UnifiedSSR      | UniSAR                 | MtlSAR               |
 | ------- | --------------- | --------------- | ---------------------- | --------------- | --------------- | --------------- | --------------- | --------------- | ---------------------- | --------------- | ---------------------- | -------------------- |
